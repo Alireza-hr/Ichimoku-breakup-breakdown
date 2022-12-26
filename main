@@ -1,0 +1,36 @@
+//@version=4
+study(title="Ichimoku Cloud-breakup", shorttitle="Ichimoku-breakup", overlay=true)
+conversionPeriods = input(9, minval=1, title="Conversion Line Length")
+basePeriods = input(26, minval=1, title="Base Line Length")
+laggingSpan2Periods = input(52, minval=1, title="Lagging Span 2 Length")
+displacement = input(26, minval=1, title="Displacement")
+donchian(len) => avg(lowest(len), highest(len))
+conversionLine = donchian(conversionPeriods)
+baseLine = donchian(basePeriods)
+leadLine1 = avg(conversionLine, baseLine)
+leadLine2 = donchian(laggingSpan2Periods)
+
+plot(conversionLine, color=#2962FF, title="Conversion Line")
+plot(baseLine, color=#B71C1C, title="Base Line")
+plot(close, offset = -displacement + 1, color=#43A047, title="Lagging Span")
+p1 = plot(leadLine1, offset = displacement - 1, color=color.green,
+	 title="Lead 1")
+p2 = plot(leadLine2, offset = displacement - 1, color=color.red,
+	 title="Lead 2")
+
+plot(leadLine1 > leadLine2 ? leadLine1 : leadLine2, offset = displacement - 1, title = "Kumo Cloud Upper Line", display = display.none) 
+plot(leadLine1 < leadLine2 ? leadLine1 : leadLine2, offset = displacement - 1, title = "Kumo Cloud Lower Line", display = display.none) 
+fill(p1, p2, color = leadLine1 > leadLine2 ? color.rgb(67, 160, 71, 90) : color.rgb(244, 67, 54, 90))
+
+bool breakup = na
+bool breakdown = na
+lead1 = leadLine1[displacement - 1]
+lead2 = leadLine2[displacement - 1]
+
+if lead2 > lead1
+    breakup :=  crossover(close, lead2)
+bgcolor(breakup?color.lime:na)
+
+if lead2 < lead1
+    breakdown := crossunder(close, lead2)
+bgcolor(breakdown?color.red:na)
